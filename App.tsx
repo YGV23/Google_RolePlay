@@ -500,14 +500,64 @@ interface ErrorState {
   onAction?: () => void;
 }
 
+const initializeCharacters = (): Character[] => {
+  try {
+    const saved = localStorage.getItem('velvetcore_characters');
+    if (saved) return JSON.parse(saved);
+  } catch (error) {
+    console.error('Failed to load characters from localStorage:', error);
+  }
+  return MOCK_CHARACTERS;
+};
+
+const initializeSettings = (): AppSettings => {
+  try {
+    const saved = localStorage.getItem('velvetcore_settings');
+    if (saved) return JSON.parse(saved);
+  } catch (error) {
+    console.error('Failed to load settings from localStorage:', error);
+  }
+  return INITIAL_SETTINGS;
+};
+
+const initializeSessions = (): Record<string, ChatSession> => {
+  try {
+    const saved = localStorage.getItem('velvetcore_sessions');
+    if (saved) return JSON.parse(saved);
+  } catch (error) {
+    console.error('Failed to load sessions from localStorage:', error);
+  }
+  return {};
+};
+
+const initializeActiveCharId = (): string | null => {
+  try {
+    const saved = localStorage.getItem('velvetcore_activeCharId');
+    if (saved && saved !== 'null') return saved;
+  } catch (error) {
+    console.error('Failed to load activeCharId from localStorage:', error);
+  }
+  return null;
+};
+
+const initializeActiveSessionId = (): string | null => {
+  try {
+    const saved = localStorage.getItem('velvetcore_activeSessionId');
+    if (saved && saved !== 'null') return saved;
+  } catch (error) {
+    console.error('Failed to load activeSessionId from localStorage:', error);
+  }
+  return null;
+};
+
 function App() {
-  const [characters, setCharacters] = useState<Character[]>(MOCK_CHARACTERS);
-  const [settings, setSettings] = useState<AppSettings>(INITIAL_SETTINGS);
-  
-  const [activeCharId, setActiveCharId] = useState<string | null>(null);
-  const [activeSessionId, setActiveSessionId] = useState<string | null>(null);
+  const [characters, setCharacters] = useState<Character[]>(initializeCharacters);
+  const [settings, setSettings] = useState<AppSettings>(initializeSettings);
+
+  const [activeCharId, setActiveCharId] = useState<string | null>(initializeActiveCharId);
+  const [activeSessionId, setActiveSessionId] = useState<string | null>(initializeActiveSessionId);
   const [chatSelection, setChatSelection] = useState<string | null>(null);
-  const [sessions, setSessions] = useState<Record<string, ChatSession>>({});
+  const [sessions, setSessions] = useState<Record<string, ChatSession>>(initializeSessions);
   
   const [sessionAction, setSessionAction] = useState<SessionAction | null>(null);
   const [renameInput, setRenameInput] = useState("");
@@ -551,51 +601,8 @@ function App() {
   const chatFileInputRef = useRef<HTMLInputElement>(null);
   
   const abortControllerRef = useRef<AbortController | null>(null);
-  const hasLoadedFromStorage = useRef(false);
 
   useEffect(() => {
-    if (hasLoadedFromStorage.current) return;
-    hasLoadedFromStorage.current = true;
-
-    try {
-      const savedCharacters = localStorage.getItem('velvetcore_characters');
-      const savedSessions = localStorage.getItem('velvetcore_sessions');
-      const savedSettings = localStorage.getItem('velvetcore_settings');
-      const savedActiveCharId = localStorage.getItem('velvetcore_activeCharId');
-      const savedActiveSessionId = localStorage.getItem('velvetcore_activeSessionId');
-
-      if (savedCharacters) {
-        const parsed = JSON.parse(savedCharacters);
-        setCharacters(parsed);
-      }
-
-      if (savedSessions) {
-        const parsed = JSON.parse(savedSessions);
-        setSessions(parsed);
-      }
-
-      if (savedSettings) {
-        const parsed = JSON.parse(savedSettings);
-        setSettings(parsed);
-      }
-
-      if (savedActiveCharId && savedActiveCharId !== 'null') {
-        setActiveCharId(savedActiveCharId);
-      }
-
-      if (savedActiveSessionId && savedActiveSessionId !== 'null') {
-        setActiveSessionId(savedActiveSessionId);
-      }
-
-      console.log('Data loaded from localStorage');
-    } catch (error) {
-      console.error('Failed to load data from localStorage:', error);
-    }
-  }, []);
-
-  useEffect(() => {
-    if (!hasLoadedFromStorage.current) return;
-
     try {
       localStorage.setItem('velvetcore_characters', JSON.stringify(characters));
     } catch (error) {
@@ -604,8 +611,6 @@ function App() {
   }, [characters]);
 
   useEffect(() => {
-    if (!hasLoadedFromStorage.current) return;
-
     try {
       localStorage.setItem('velvetcore_sessions', JSON.stringify(sessions));
     } catch (error) {
@@ -614,8 +619,6 @@ function App() {
   }, [sessions]);
 
   useEffect(() => {
-    if (!hasLoadedFromStorage.current) return;
-
     try {
       localStorage.setItem('velvetcore_settings', JSON.stringify(settings));
     } catch (error) {
@@ -624,8 +627,6 @@ function App() {
   }, [settings]);
 
   useEffect(() => {
-    if (!hasLoadedFromStorage.current) return;
-
     try {
       localStorage.setItem('velvetcore_activeCharId', activeCharId || 'null');
     } catch (error) {
@@ -634,8 +635,6 @@ function App() {
   }, [activeCharId]);
 
   useEffect(() => {
-    if (!hasLoadedFromStorage.current) return;
-
     try {
       localStorage.setItem('velvetcore_activeSessionId', activeSessionId || 'null');
     } catch (error) {
