@@ -551,12 +551,103 @@ function App() {
   const chatFileInputRef = useRef<HTMLInputElement>(null);
   
   const abortControllerRef = useRef<AbortController | null>(null);
+  const hasLoadedFromStorage = useRef(false);
+
+  useEffect(() => {
+    if (hasLoadedFromStorage.current) return;
+    hasLoadedFromStorage.current = true;
+
+    try {
+      const savedCharacters = localStorage.getItem('velvetcore_characters');
+      const savedSessions = localStorage.getItem('velvetcore_sessions');
+      const savedSettings = localStorage.getItem('velvetcore_settings');
+      const savedActiveCharId = localStorage.getItem('velvetcore_activeCharId');
+      const savedActiveSessionId = localStorage.getItem('velvetcore_activeSessionId');
+
+      if (savedCharacters) {
+        const parsed = JSON.parse(savedCharacters);
+        setCharacters(parsed);
+      }
+
+      if (savedSessions) {
+        const parsed = JSON.parse(savedSessions);
+        setSessions(parsed);
+      }
+
+      if (savedSettings) {
+        const parsed = JSON.parse(savedSettings);
+        setSettings(parsed);
+      }
+
+      if (savedActiveCharId && savedActiveCharId !== 'null') {
+        setActiveCharId(savedActiveCharId);
+      }
+
+      if (savedActiveSessionId && savedActiveSessionId !== 'null') {
+        setActiveSessionId(savedActiveSessionId);
+      }
+
+      console.log('Data loaded from localStorage');
+    } catch (error) {
+      console.error('Failed to load data from localStorage:', error);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (!hasLoadedFromStorage.current) return;
+
+    try {
+      localStorage.setItem('velvetcore_characters', JSON.stringify(characters));
+    } catch (error) {
+      console.error('Failed to save characters to localStorage:', error);
+    }
+  }, [characters]);
+
+  useEffect(() => {
+    if (!hasLoadedFromStorage.current) return;
+
+    try {
+      localStorage.setItem('velvetcore_sessions', JSON.stringify(sessions));
+    } catch (error) {
+      console.error('Failed to save sessions to localStorage:', error);
+    }
+  }, [sessions]);
+
+  useEffect(() => {
+    if (!hasLoadedFromStorage.current) return;
+
+    try {
+      localStorage.setItem('velvetcore_settings', JSON.stringify(settings));
+    } catch (error) {
+      console.error('Failed to save settings to localStorage:', error);
+    }
+  }, [settings]);
+
+  useEffect(() => {
+    if (!hasLoadedFromStorage.current) return;
+
+    try {
+      localStorage.setItem('velvetcore_activeCharId', activeCharId || 'null');
+    } catch (error) {
+      console.error('Failed to save activeCharId to localStorage:', error);
+    }
+  }, [activeCharId]);
+
+  useEffect(() => {
+    if (!hasLoadedFromStorage.current) return;
+
+    try {
+      localStorage.setItem('velvetcore_activeSessionId', activeSessionId || 'null');
+    } catch (error) {
+      console.error('Failed to save activeSessionId to localStorage:', error);
+    }
+  }, [activeSessionId]);
 
   useEffect(() => {
     if (isGenerating && chatContainerRef.current) {
         const { scrollHeight, scrollTop, clientHeight } = chatContainerRef.current;
         const distanceFromBottom = scrollHeight - scrollTop - clientHeight;
-        
+
         if (distanceFromBottom < 100) {
             bottomRef.current?.scrollIntoView({ behavior: 'auto' });
         }
